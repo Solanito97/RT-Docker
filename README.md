@@ -35,3 +35,38 @@ This repository contains a custom solution to install [Request Tracker (RT)](htt
    ```bash
    git clone https://github.com/Solanito97/RT-Docker
    cd rt-docker
+
+   Adjust Permissions in WSL
+
+2. **If you are using WSL, make sure to grant execution permissions to the entrypoint.sh script.**
+From your Ubuntu terminal, run:
+
+cd /mnt/c/rt-docker
+chmod +x entrypoint.sh
+
+**Alternatively, copy the repository to your WSL home directory:**
+
+cp -r /mnt/c/rt-docker ~/rt-docker
+cd ~/rt-docker
+chmod +x entrypoint.sh
+
+3. **Build and Start the Containers**
+
+**In the repository directory, execute:**
+
+docker-compose up --build -d
+
+**This command will:**
+
+Build the custom RT image.
+Start both the rt and db containers in detached mode.
+Map the container's internal port 80 (RT's Apache) to port 8080 on your host.
+
+4. **Access RT**
+Open your browser and navigate to:
+http://localhost:8080
+
+**Contributing:**
+If you would like to contribute to this project, please open an issue or submit a pull request.
+**License**
+This project is licensed under the MIT License.
