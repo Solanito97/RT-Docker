@@ -33,5 +33,5 @@ This repository contains a custom solution to install [Request Tracker (RT)](htt
 
    Clone the repository to your local system:
    ```bash
-   git clone https://github.com/your-username/rt-docker.git
+   git clone https://github.com/Solanito97/RT-Docker
    cd rt-docker
