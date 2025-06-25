@@ -8,22 +8,28 @@ services:
     depends_on:
       - db
     ports:
-      - "3001:3001"
+      - "3001:80"
     environment:
       RT_DATABASE_HOST: db
-      RT_DATABASE_NAME: rt4
+      RT_DATABASE_NAME: rt6
       RT_DATABASE_USER: rt_user
       RT_DATABASE_PASSWORD: rt_pass
       RT_ROOT_PASSWORD: root_password
     volumes:
       - rt-data:/opt/rt6/var
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   db:
     image: mariadb:11.3
     container_name: rt-db
     restart: always
     environment:
-      MYSQL_DATABASE: rt4
+      MYSQL_DATABASE: rt6
       MYSQL_USER: rt_user
       MYSQL_PASSWORD: rt_pass
       MYSQL_ROOT_PASSWORD: root_password

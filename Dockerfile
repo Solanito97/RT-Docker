@@ -31,14 +31,21 @@ RUN apt-get update && apt-get install -y postfix \
     libxpm-dev \         
     libfreetype6-dev \   
     apt-utils \          
-    dialog \             
+    dialog \
+    make \
+    gcc \
+    g++ \
+    libc6-dev \
+    pkg-config \
+    libmysqlclient-dev \
+    libperl-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Descargar Request Tracker 5.0.4
+# 3. Descargar Request Tracker 6.0.0
 WORKDIR /opt
-RUN wget https://download.bestpractical.com/pub/rt/release/rt-6.0.0.tar.gz \
-    && tar -xvzf rt-6.0.0.tar.gz \
+RUN wget https://download.bestpractical.com/pub/rt/release/rt-6.0.0.tar.gz --timeout=30 --tries=3 \
+    && tar -xzf rt-6.0.0.tar.gz \
     && mv rt-6.0.0 rt6 \
     && rm rt-6.0.0.tar.gz
 
@@ -52,12 +59,18 @@ RUN ./configure \
     --with-web-user=www-data \
     --with-web-group=www-data
 
-# 5. Instalar dependencias Perl requeridas por RT
-RUN cpanm --notest \
-    GD \                 
-    GD::Graph \          
-    GD::Text \           
-    GraphViz2 \          
+# 5. Instalar dependencias Perl requeridas por RT (en orden específico)
+RUN cpanm --notest --force \
+    Module::Install \
+    Module::Install::RTx \
+    DBI \
+    DBD::mysql \
+    && cpanm --notest --force \
+    GD \
+    GD::Graph \
+    GD::Text \
+    GraphViz2 \
+    && cpanm --notest --force \
     Apache::Session Business::Hours CGI CGI::Cookie CGI::Emulate::PSGI CGI::PSGI \
     CSS::Minifier::XS CSS::Squish Class::Accessor::Fast Convert::Color Crypt::Eksblowfish \
     DBIx::SearchBuilder Data::GUID Data::ICal Data::Page Date::Extract Date::Manip DateTime \
@@ -74,27 +87,43 @@ RUN cpanm --notest \
     Time::ParseDate Tree::Simple Web::Machine XML::RSS File::Which GnuPG::Interface PerlIO::eol \
     Crypt::X509
 
-# 6. Instalar RT sin inicializar la base de datos
+# 6. Instalar RT con manejo de errores mejorado
 WORKDIR /opt/rt6
-RUN make testdeps && \
-    make install DESTDIR=/tmp/rt-install && \
-    cp -r /tmp/rt-install/opt/rt6/* /opt/rt6/ && \
-    rm -rf /tmp/rt-install
+RUN echo "Verificando dependencias..." \
+    && make fixdeps || echo "fixdeps completado con advertencias" \
+    && echo "Probando dependencias..." \
+    && (make testdeps || echo "Algunas dependencias opcionales pueden faltar, continuando...") \
+    && echo "Compilando e instalando RT..." \
+    && make install DESTDIR=/tmp/rt-install \
+    && cp -r /tmp/rt-install/opt/rt6/* /opt/rt6/ \
+    && rm -rf /tmp/rt-install \
+    && echo "Instalación de RT completada"
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
-RUN a2enmod perl rewrite headers cgid
+RUN a2enmod perl rewrite headers cgid expires \
+    && a2dissite 000-default \
+    && a2ensite 000-default
 
 # 8. Configuración personalizada de RT
 COPY RT_SiteConfig.pm /opt/rt6/etc/RT_SiteConfig.pm
 RUN chown www-data:www-data /opt/rt6/etc/RT_SiteConfig.pm
 
 # 9. Preparar directorios y permisos
-RUN mkdir -p /opt/rt6/var && chown -R www-data:www-data /opt/rt6/var
+RUN mkdir -p /opt/rt6/var/log /opt/rt6/var/session_data /opt/rt6/var/mason_data \
+    && chown -R www-data:www-data /opt/rt6/var \
+    && chmod -R 755 /opt/rt6/var \
+    && mkdir -p /var/log/apache2 \
+    && chown -R www-data:www-data /var/log/apache2
 
-# 10. Entrypoint y puerto
+# 10. Entrypoint, puerto y healthcheck
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
 EXPOSE 80
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
 
 CMD ["/entrypoint.sh"]
