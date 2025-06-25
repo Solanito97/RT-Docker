@@ -175,8 +175,10 @@ RUN echo "Creando estructura básica de RT..." \
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
-# Configurar Apache para escuchar en puerto 3002
+# Configurar Apache para escuchar en puerto 3002 y añadir configuración de seguridad
 RUN echo "Listen 3002" >> /etc/apache2/ports.conf \
+    && echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
+    && echo "ServerSignature Off" >> /etc/apache2/apache2.conf \
     && a2enmod perl rewrite headers cgid expires \
     && a2dissite 000-default \
     && a2ensite 000-default \
