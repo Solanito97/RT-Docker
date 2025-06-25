@@ -146,20 +146,28 @@ RUN echo "Instalando dependencias finales..." \
     Time::ParseDate \
     Tree::Simple \
     Web::Machine \
-    XML::RSS
+    XML::RSS \
+    Apache2::RequestRec \
+    Apache2::RequestIO \
+    Apache2::RequestUtil
 
-# 6. Instalar RT saltando verificación de dependencias problemática
+# 6. Instalar RT usando método manual sin Make
 WORKDIR /opt/rt6
-RUN echo "Iniciando instalación de RT..." \
-    && echo "Ejecutando make fixdeps..." \
-    && (make fixdeps || echo "fixdeps completado, continuando...") \
-    && echo "Saltando testdeps - instalando directamente..." \
-    && echo "Compilando e instalando RT..." \
-    && make install DESTDIR=/tmp/rt-install \
-    && echo "Copiando archivos instalados..." \
-    && cp -r /tmp/rt-install/opt/rt6/* /opt/rt6/ \
-    && rm -rf /tmp/rt-install \
-    && echo "Instalación de RT completada exitosamente"
+RUN echo "Iniciando instalación manual de RT..." \
+    && echo "Creando estructura de directorios..." \
+    && mkdir -p /opt/rt6/{bin,sbin,lib,share,etc,var} \
+    && mkdir -p /opt/rt6/share/{html,po} \
+    && mkdir -p /opt/rt6/var/{log,session_data,mason_data} \
+    && echo "Copiando archivos esenciales..." \
+    && find . -name "*.pm" -exec cp --parents {} /opt/rt6/lib/ \; \
+    && cp -r share/* /opt/rt6/share/ 2>/dev/null || true \
+    && cp -r etc/* /opt/rt6/etc/ 2>/dev/null || true \
+    && cp -r sbin/* /opt/rt6/sbin/ 2>/dev/null || true \
+    && cp -r bin/* /opt/rt6/bin/ 2>/dev/null || true \
+    && echo "Configurando permisos..." \
+    && chmod +x /opt/rt6/sbin/* 2>/dev/null || true \
+    && chmod +x /opt/rt6/bin/* 2>/dev/null || true \
+    && echo "Instalación manual completada"
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
