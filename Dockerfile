@@ -37,13 +37,13 @@ RUN apt-get update && apt-get install -y postfix \
 
 # 3. Descargar Request Tracker 5.0.4
 WORKDIR /opt
-RUN wget https://download.bestpractical.com/pub/rt/release/rt-5.0.4.tar.gz \
-    && tar -xvzf rt-5.0.4.tar.gz \
-    && mv rt-5.0.4 rt5 \
-    && rm rt-5.0.4.tar.gz
+RUN wget https://download.bestpractical.com/pub/rt/release/rt-6.0.0.tar.gz \
+    && tar -xvzf rt-6.0.0.tar.gz \
+    && mv rt-6.0.0 rt6 \
+    && rm rt-6.0.0.tar.gz
 
 # 4. Configurar RT con soporte para GD y GraphViz
-WORKDIR /opt/rt5
+WORKDIR /opt/rt6
 RUN ./configure \
     --with-web-handler=modperl2 \
     --with-db-type=mysql \
@@ -75,10 +75,10 @@ RUN cpanm --notest \
     Crypt::X509
 
 # 6. Instalar RT sin inicializar la base de datos
-WORKDIR /opt/rt5
+WORKDIR /opt/rt6
 RUN make testdeps && \
     make install DESTDIR=/tmp/rt-install && \
-    cp -r /tmp/rt-install/opt/rt5/* /opt/rt5/ && \
+    cp -r /tmp/rt-install/opt/rt6/* /opt/rt6/ && \
     rm -rf /tmp/rt-install
 
 # 7. Configuración de Apache
@@ -86,11 +86,11 @@ COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod perl rewrite headers cgid
 
 # 8. Configuración personalizada de RT
-COPY RT_SiteConfig.pm /opt/rt5/etc/RT_SiteConfig.pm
-RUN chown www-data:www-data /opt/rt5/etc/RT_SiteConfig.pm
+COPY RT_SiteConfig.pm /opt/rt6/etc/RT_SiteConfig.pm
+RUN chown www-data:www-data /opt/rt6/etc/RT_SiteConfig.pm
 
 # 9. Preparar directorios y permisos
-RUN mkdir -p /opt/rt5/var && chown -R www-data:www-data /opt/rt5/var
+RUN mkdir -p /opt/rt6/var && chown -R www-data:www-data /opt/rt6/var
 
 # 10. Entrypoint y puerto
 COPY entrypoint.sh /entrypoint.sh

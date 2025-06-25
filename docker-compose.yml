@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   rt:
@@ -8,7 +8,7 @@ services:
     depends_on:
       - db
     ports:
-      - "8080:80"
+      - "3001:3001"
     environment:
       RT_DATABASE_HOST: db
       RT_DATABASE_NAME: rt4
@@ -16,7 +16,7 @@ services:
       RT_DATABASE_PASSWORD: rt_pass
       RT_ROOT_PASSWORD: root_password
     volumes:
-      - rt-data:/opt/rt5/var
+      - rt-data:/opt/rt6/var
 
   db:
     image: mariadb:11.3
@@ -27,8 +27,8 @@ services:
       MYSQL_USER: rt_user
       MYSQL_PASSWORD: rt_pass
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_ROOT_HOST: '%'  # Permitir acceso root desde cualquier host
-    command: 
+      MYSQL_ROOT_HOST: "%" # Permitir acceso root desde cualquier host
+    command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
