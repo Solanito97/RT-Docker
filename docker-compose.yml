@@ -8,7 +8,7 @@ services:
     depends_on:
       - db
     ports:
-      - "3001:80"
+      - "3001:3002"
     environment:
       RT_DATABASE_HOST: db
       RT_DATABASE_NAME: rt6
@@ -18,7 +18,7 @@ services:
     volumes:
       - rt-data:/opt/rt6/var
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost:3002/"]
       interval: 30s
       timeout: 10s
       retries: 3

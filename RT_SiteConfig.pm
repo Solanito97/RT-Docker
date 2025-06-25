@@ -1,4 +1,7 @@
-# Configuración de Base de Datos
+# Confi# Configuración Web
+Set($WebDomain, 'localhost');
+Set($WebPort, 3002);
+Set($WebPath, '');ción de Base de Datos
 Set($DatabaseType, 'mysql');
 Set($DatabaseHost, $ENV{'RT_DATABASE_HOST'} || 'db');
 Set($DatabaseName, $ENV{'RT_DATABASE_NAME'} || 'rt6');
@@ -7,7 +10,7 @@ Set($DatabasePassword, $ENV{'RT_DATABASE_PASSWORD'} || 'rt_pass');
 
 # Configuración Web
 Set($WebDomain, 'localhost');
-Set($WebPort, 80);
+Set($WebPort, 8080);
 Set($WebPath, '');
 
 # Configuración de Correo

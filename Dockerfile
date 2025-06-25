@@ -175,9 +175,12 @@ RUN echo "Creando estructura básica de RT..." \
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
-RUN a2enmod perl rewrite headers cgid expires \
+# Configurar Apache para escuchar en puerto 3002
+RUN echo "Listen 3002" >> /etc/apache2/ports.conf \
+    && a2enmod perl rewrite headers cgid expires \
     && a2dissite 000-default \
-    && a2ensite 000-default
+    && a2ensite 000-default \
+    && echo "Listen 8080" >> /etc/apache2/apache2.conf
 
 # 8. Configuración personalizada de RT
 COPY RT_SiteConfig.pm /opt/rt6/etc/RT_SiteConfig.pm
@@ -194,10 +197,10 @@ RUN mkdir -p /opt/rt6/var/log /opt/rt6/var/session_data /opt/rt6/var/mason_data 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 80
+EXPOSE 3002
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD curl -f http://localhost:3002/ || exit 1
 
 CMD ["/entrypoint.sh"]
