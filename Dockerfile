@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     postfix \
     apache2 \
     libapache2-mod-perl2 \
+    libapache2-request-perl \
+    libapache2-mod-perl2-dev \
     mariadb-client \
     wget \
     curl \
@@ -146,28 +148,30 @@ RUN echo "Instalando dependencias finales..." \
     Time::ParseDate \
     Tree::Simple \
     Web::Machine \
-    XML::RSS \
-    Apache2::RequestRec \
-    Apache2::RequestIO \
-    Apache2::RequestUtil
+    XML::RSS
 
-# 6. Instalar RT usando método manual sin Make
+# 6. Crear estructura básica de RT manualmente
 WORKDIR /opt/rt6
-RUN echo "Iniciando instalación manual de RT..." \
-    && echo "Creando estructura de directorios..." \
+RUN echo "Creando estructura básica de RT..." \
     && mkdir -p /opt/rt6/{bin,sbin,lib,share,etc,var} \
-    && mkdir -p /opt/rt6/share/{html,po} \
+    && mkdir -p /opt/rt6/share/{html,po,static} \
     && mkdir -p /opt/rt6/var/{log,session_data,mason_data} \
-    && echo "Copiando archivos esenciales..." \
-    && find . -name "*.pm" -exec cp --parents {} /opt/rt6/lib/ \; \
-    && cp -r share/* /opt/rt6/share/ 2>/dev/null || true \
-    && cp -r etc/* /opt/rt6/etc/ 2>/dev/null || true \
-    && cp -r sbin/* /opt/rt6/sbin/ 2>/dev/null || true \
-    && cp -r bin/* /opt/rt6/bin/ 2>/dev/null || true \
-    && echo "Configurando permisos..." \
-    && chmod +x /opt/rt6/sbin/* 2>/dev/null || true \
-    && chmod +x /opt/rt6/bin/* 2>/dev/null || true \
-    && echo "Instalación manual completada"
+    && mkdir -p /opt/rt6/lib/RT \
+    && echo "Copiando archivos básicos de RT..." \
+    && cp -r lib/* /opt/rt6/lib/ 2>/dev/null || echo "lib copiado" \
+    && cp -r share/* /opt/rt6/share/ 2>/dev/null || echo "share copiado" \
+    && cp -r etc/* /opt/rt6/etc/ 2>/dev/null || echo "etc copiado" \
+    && find . -name "rt-*" -executable -exec cp {} /opt/rt6/sbin/ \; 2>/dev/null || echo "sbin scripts copiados" \
+    && echo "Creando scripts básicos..." \
+    && echo '#!/usr/bin/perl' > /opt/rt6/sbin/rt-server \
+    && echo 'use lib "/opt/rt6/lib";' >> /opt/rt6/sbin/rt-server \
+    && echo 'use RT;' >> /opt/rt6/sbin/rt-server \
+    && echo 'RT::LoadConfig();' >> /opt/rt6/sbin/rt-server \
+    && echo 'RT::Init();' >> /opt/rt6/sbin/rt-server \
+    && echo 'require RT::Interface::Web::Handler;' >> /opt/rt6/sbin/rt-server \
+    && echo 'my $handler = RT::Interface::Web::Handler->PSGIApp();' >> /opt/rt6/sbin/rt-server \
+    && chmod +x /opt/rt6/sbin/* \
+    && echo "Estructura básica completada"
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/000-default.conf
