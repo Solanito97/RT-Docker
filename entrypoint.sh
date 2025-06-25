@@ -8,6 +8,12 @@ log() {
 
 log "Iniciando contenedor RT6..."
 
+# Limpiar configuraciones problemáticas de Apache
+log "Configurando Apache..."
+rm -f /etc/apache2/sites-enabled/000-default.conf
+rm -f /etc/apache2/sites-enabled/default-ssl.conf
+a2ensite rt || true
+
 # Verificar variables de entorno requeridas
 : ${RT_DATABASE_HOST:?RT_DATABASE_HOST no está definido}
 : ${RT_DATABASE_NAME:?RT_DATABASE_NAME no está definido}
