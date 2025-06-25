@@ -1,6 +1,6 @@
 # Request Tracker (RT) in Docker
 
-This repository contains a custom solution to install [Request Tracker (RT)](https://bestpractical.com/request-tracker) using Docker and Docker Compose. Since there is no official RT Docker image available, this setup uses a custom container based on Ubuntu 24.04 running RT 5.0.4 along with a MariaDB container for the database.
+This repository contains a custom solution to install [Request Tracker (RT)](https://bestpractical.com/request-tracker) using Docker and Docker Compose. Since there is no official RT Docker image available, this setup uses a custom container based on Ubuntu 24.04 running RT 6.0.0 along with a MariaDB container for the database.
 
 ## Repository Contents
 
