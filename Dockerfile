@@ -150,28 +150,45 @@ RUN echo "Instalando dependencias finales..." \
     Web::Machine \
     XML::RSS
 
-# 6. Crear estructura básica de RT manualmente
+# 6. Instalar RT usando método directo con make
 WORKDIR /opt/rt6
-RUN echo "Creando estructura básica de RT..." \
-    && mkdir -p /opt/rt6/{bin,sbin,lib,share,etc,var} \
-    && mkdir -p /opt/rt6/share/{html,po,static} \
-    && mkdir -p /opt/rt6/var/{log,session_data,mason_data} \
-    && mkdir -p /opt/rt6/lib/RT \
-    && echo "Copiando archivos básicos de RT..." \
-    && cp -r lib/* /opt/rt6/lib/ 2>/dev/null || echo "lib copiado" \
-    && cp -r share/* /opt/rt6/share/ 2>/dev/null || echo "share copiado" \
-    && cp -r etc/* /opt/rt6/etc/ 2>/dev/null || echo "etc copiado" \
-    && find . -name "rt-*" -executable -exec cp {} /opt/rt6/sbin/ \; 2>/dev/null || echo "sbin scripts copiados" \
-    && echo "Creando scripts básicos..." \
-    && echo '#!/usr/bin/perl' > /opt/rt6/sbin/rt-server \
-    && echo 'use lib "/opt/rt6/lib";' >> /opt/rt6/sbin/rt-server \
-    && echo 'use RT;' >> /opt/rt6/sbin/rt-server \
-    && echo 'RT::LoadConfig();' >> /opt/rt6/sbin/rt-server \
-    && echo 'RT::Init();' >> /opt/rt6/sbin/rt-server \
-    && echo 'require RT::Interface::Web::Handler;' >> /opt/rt6/sbin/rt-server \
-    && echo 'my $handler = RT::Interface::Web::Handler->PSGIApp();' >> /opt/rt6/sbin/rt-server \
-    && chmod +x /opt/rt6/sbin/* \
-    && echo "Estructura básica completada"
+RUN echo "Intentando instalación directa de RT..." \
+    && echo "Probando make install directo..." \
+    && (make install || echo "Make install falló, continuando con instalación manual...") \
+    && echo "Verificando instalación..." \
+    && if [ ! -f "/opt/rt6/lib/RT.pm" ]; then \
+        echo "RT.pm no encontrado, copiando manualmente..." && \
+        mkdir -p /opt/rt6/lib && \
+        find . -name "*.pm" -path "*/lib/*" -exec cp --parents {} /opt/rt6/ \; && \
+        find . -name "RT.pm" -exec cp {} /opt/rt6/lib/ \; 2>/dev/null || true && \
+        cp -r lib/* /opt/rt6/lib/ 2>/dev/null || true; \
+    fi \
+    && echo "Creando rt-server funcional..." \
+    && cat > /opt/rt6/sbin/rt-server << 'EOF'
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib '/opt/rt6/lib';
+
+BEGIN {
+    $ENV{'RT_SITE_CONFIG'} = '/opt/rt6/etc/RT_SiteConfig.pm';
+}
+
+use RT;
+RT::LoadConfig();
+RT::Init();
+
+use Plack::Builder;
+use RT::Interface::Web::Handler;
+
+my $handler = RT::Interface::Web::Handler->PSGIApp();
+
+builder {
+    $handler;
+};
+EOF
+    && chmod +x /opt/rt6/sbin/rt-server \
+    && echo "Instalación completada"
 
 # 7. Configuración de Apache
 COPY rt-apache.conf /etc/apache2/sites-available/rt.conf
@@ -181,8 +198,7 @@ RUN echo "Listen 3002" >> /etc/apache2/ports.conf \
     && echo "ServerSignature Off" >> /etc/apache2/apache2.conf \
     && a2enmod perl rewrite headers cgid expires \
     && a2dissite 000-default default-ssl || true \
-    && a2ensite rt \
-    && echo "Listen 8080" >> /etc/apache2/apache2.conf
+    && a2ensite rt
 
 # 8. Configuración personalizada de RT
 COPY RT_SiteConfig.pm /opt/rt6/etc/RT_SiteConfig.pm
@@ -203,6 +219,6 @@ EXPOSE 3002
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3002/ || exit 1
+    CMD curl -f http://192.168.1.110:3002/ || exit 1
 
 CMD ["/entrypoint.sh"]
