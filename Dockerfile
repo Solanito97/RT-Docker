@@ -148,7 +148,16 @@ RUN echo "Instalando dependencias finales..." \
     Time::ParseDate \
     Tree::Simple \
     Web::Machine \
-    XML::RSS
+    XML::RSS \
+    Hash::Merge \
+    Locale::Maketext::Lexicon \
+    Locale::Maketext::Fuzzy \
+    Storable \
+    Term::ReadKey \
+    Text::Wrapper \
+    UNIVERSAL::require \
+    Apache2::Request \
+    Apache2::Cookie
 
 # 6. Instalar RT usando método directo con make
 WORKDIR /opt/rt6
@@ -219,6 +228,6 @@ EXPOSE 3002
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://192.168.1.110:3002/ || exit 1
+    CMD curl -f http://localhost:3002/ || exit 1
 
 CMD ["/entrypoint.sh"]
