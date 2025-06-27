@@ -148,7 +148,10 @@ RUN echo "Instalando dependencias finales..." \
     Time::ParseDate \
     Tree::Simple \
     Web::Machine \
-    XML::RSS \
+    XML::RSS
+
+RUN echo "Instalando dependencias adicionales críticas..." \
+    && cpanm --notest --force --quiet \
     Hash::Merge \
     Locale::Maketext::Lexicon \
     Locale::Maketext::Fuzzy \
