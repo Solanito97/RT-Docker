@@ -2,10 +2,10 @@
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![RT Version](https://img.shields.io/badge/RT-6.0.0-green)](https://bestpractical.com/request-tracker)
-[![MariaDB](https://img.shields.io/badge/MariaDB-11.3-orange)](https://mariadb.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-orange)](https://mysql.com/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-purple)](https://ubuntu.com/)
 
-> **Una solución completa en Docker para Request Tracker (RT) 6.0.0** - El sistema de seguimiento de tickets empresarial más robusto, ahora containerizado y listo para producción.
+> **Una solución completa en Docker para Request Tracker (RT) 6.0.0** - El sistema de seguimiento de tickets empresarial más robusto, ahora containerizado y listo para producción con MySQL 8.0.
 
 ## 📋 Tabla de Contenidos
 
@@ -42,10 +42,10 @@ RT es un sistema empresarial de seguimiento de tickets que permite gestionar sol
 
 ```
 ┌─────────────────┐    ┌─────────────────┐
-│   RT Container  │    │  MariaDB        │
+│   RT Container  │    │  MySQL          │
 │                 │    │  Container      │
 │ • Apache 2.4    │◄──►│                 │
-│ • mod_perl2     │    │ • MariaDB 11.3  │
+│ • mod_perl2     │    │ • MySQL 8.0     │
 │ • RT 6.0.0      │    │ • UTF8MB4       │
 │ • Ubuntu 24.04  │    │ • Persistent    │
 └─────────────────┘    └─────────────────┘
@@ -63,7 +63,7 @@ RT es un sistema empresarial de seguimiento de tickets que permite gestionar sol
 | Archivo              | Descripción                                           |
 | -------------------- | ----------------------------------------------------- |
 | `Dockerfile`         | Imagen personalizada de RT con todas las dependencias |
-| `docker-compose.yml` | Orquestación de servicios RT + MariaDB                |
+| `docker-compose.yml` | Orquestación de servicios RT + MySQL                  |
 | `entrypoint.sh`      | Script de inicialización inteligente con logging      |
 | `rt-apache.conf`     | Configuración optimizada de Apache para RT            |
 | `RT_SiteConfig.pm`   | Configuración principal de RT con mejores prácticas   |
@@ -145,7 +145,7 @@ environment:
   RT_DATABASE_NAME: rt6 # Nombre de la base de datos
   RT_DATABASE_USER: rt_user # Usuario de la base de datos
   RT_DATABASE_PASSWORD: rt_pass # Contraseña de la base de datos
-  RT_ROOT_PASSWORD: root_password # Contraseña root de MariaDB
+  RT_ROOT_PASSWORD: root_password # Contraseña root de MySQL
 ```
 
 ### Configuración Avanzada
@@ -225,7 +225,7 @@ docker inspect rt-container --format='{{.State.Health.Status}}'
 # Logs de RT con timestamps
 docker-compose logs rt
 
-# Logs de MariaDB
+# Logs de MySQL
 docker-compose logs db
 
 # Seguir logs en tiempo real
@@ -262,7 +262,7 @@ curl -I http://localhost:3001
 #### 💾 Error de conexión a base de datos
 
 ```bash
-# Verificar estado de MariaDB
+# Verificar estado de MySQL
 docker-compose logs db
 
 # Verificar conectividad desde RT
@@ -291,7 +291,7 @@ docker-compose exec rt cat /opt/rt6/etc/RT_SiteConfig.pm
 # Acceso directo al contenedor de RT
 docker-compose exec rt bash
 
-# Acceso directo a MariaDB
+# Acceso directo a MySQL
 docker-compose exec db mysql -u root -p
 ```
 

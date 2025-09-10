@@ -1,10 +1,80 @@
-# Usamos Ubuntu 24.04 LTS como imagen base
-FROM ubuntu:24.04
+# ===========================================
+# Multi-stage build para Request Tracker 6.0
+# ===========================================
+
+# Stage 1: Build dependencies
+FROM ubuntu:24.04 as builder
 
 # Evitar interacciones durante la instalación
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 1. Actualizar repositorios con mirrors confiables
+# Actualizar repositorios con mirrors confiables
+RUN sed -i 's/archive.ubuntu.com/mirrors.ubuntu.com/g' /etc/apt/sources.list
+
+# Instalar dependencias de construcción
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    curl \
+    perl \
+    cpanminus \
+    libssl-dev \
+    libexpat1-dev \
+    libdbd-mysql-perl \
+    default-libmysqlclient-dev \
+    libperl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libgd-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxpm-dev \
+    libfreetype6-dev \
+    libgraphviz-dev \
+    graphviz \
+    && rm -rf /var/lib/apt/lists/*
+
+# Descargar y preparar RT
+WORKDIR /opt
+RUN wget https://download.bestpractical.com/pub/rt/release/rt-6.0.0.tar.gz --timeout=30 --tries=3 \
+    && tar -xzf rt-6.0.0.tar.gz \
+    && mv rt-6.0.0 rt6 \
+    && rm rt-6.0.0.tar.gz
+
+# Configurar RT
+WORKDIR /opt/rt6
+RUN ./configure \
+    --with-web-handler=modperl2 \
+    --with-db-type=mysql \
+    --enable-gd \
+    --enable-graphviz \
+    --with-web-user=www-data \
+    --with-web-group=www-data
+
+# Stage 2: Runtime image
+FROM ubuntu:24.04 as runtime
+
+# Metadata
+LABEL maintainer="RT-Docker Team"
+LABEL version="6.0.0"
+LABEL description="Request Tracker 6.0 with MySQL 8.0 support"
+
+# Evitar interacciones durante la instalación
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Variables de entorno para RT
+ENV RT_VERSION=6.0.0
+ENV RT_HOME=/opt/rt6
+ENV APACHE_RUN_USER=www-data
+ENV APACHE_RUN_GROUP=www-data
+ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
+ENV APACHE_RUN_DIR=/var/run/apache2
+ENV APACHE_LOCK_DIR=/var/lock/apache2
+ENV APACHE_LOG_DIR=/var/log/apache2
+
+# Actualizar repositorios
 RUN sed -i 's/archive.ubuntu.com/mirrors.ubuntu.com/g' /etc/apt/sources.list
 
 # 2. Instalar dependencias del sistema
@@ -14,7 +84,7 @@ RUN apt-get update && apt-get install -y \
     libapache2-mod-perl2 \
     libapache2-request-perl \
     libapache2-mod-perl2-dev \
-    mariadb-client \
+    mysql-client \
     wget \
     curl \
     nano \
@@ -40,7 +110,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     libc6-dev \
     pkg-config \
-    libmysqlclient-dev \
+    default-libmysqlclient-dev \
     libperl-dev \
     libxml2-dev \
     libxslt1-dev \
