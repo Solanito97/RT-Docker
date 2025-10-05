@@ -14,7 +14,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
     ports:
-      - "192.168.1.110:9091:3306"
+      - "3306:3306"
     networks:
       - rt-network
 
@@ -27,14 +27,14 @@ services:
       - RT_DATABASE_NAME=rt6
       - RT_DATABASE_USER=rt_user
       - RT_DATABASE_PASSWORD=rt_password
-      - RT_WEB_DOMAIN=192.168.1.110
-      - RT_WEB_PORT=9090
+      - RT_WEB_DOMAIN=localhost
+      - RT_WEB_PORT=80
     volumes:
       - rt_data:/opt/rt6/var
       - ./config:/opt/rt6/etc/RT_SiteConfig.d
       - ./plugins:/opt/rt6/local/plugins
     ports:
-      - "192.168.1.110:9090:80"
+      - "80:80"
     depends_on:
       - mysql
     networks:

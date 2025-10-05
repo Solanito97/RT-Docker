@@ -4,11 +4,11 @@ Este proyecto proporciona una instalación automatizada de Request Tracker 6.0 u
 
 ## Características
 
-- Request Tracker 6.0.6
+- Request Tracker 6.0.1
 - MySQL 8.0
 - Apache con FastCGI
 - Configuración automatizada
-- Puertos configurados: 4000-4008
+- Puertos estándar (80, 3306)
 
 ## Estructura del Proyecto
 
@@ -34,9 +34,11 @@ RT-Docker/
 
 - Docker
 - Docker Compose
-- Puertos 4000-4008 disponibles
+- Puertos 80 y 3306 disponibles
 
 ### Instalación
+
+#### Método 1: Línea de Comandos
 
 1. Clona o descarga este repositorio
 2. Navega al directorio del proyecto
@@ -46,10 +48,20 @@ RT-Docker/
 docker-compose up -d --build
 ```
 
+#### Método 2: Con 1Panel
+
+1. Accede a tu panel de 1Panel
+2. Ve a `Contenedores` → `Crear Aplicación`
+3. Selecciona `Desde Docker Compose`
+4. Copia y pega el contenido de `docker-compose.yml`
+5. Haz clic en `Crear y Ejecutar`
+
+> **Nota**: 1Panel gestionará automáticamente los puertos y proporcionará una interfaz visual para monitoreo.
+
 ### Acceso
 
-- **Request Tracker**: http://localhost:4000
-- **MySQL**: localhost:4001
+- **Request Tracker**: http://localhost
+- **MySQL**: localhost:3306
 
 ### Credenciales por Defecto
 
@@ -77,7 +89,7 @@ environment:
   - RT_DATABASE_USER=rt_user
   - RT_DATABASE_PASSWORD=rt_password
   - RT_WEB_DOMAIN=localhost
-  - RT_WEB_PORT=4000
+  - RT_WEB_PORT=80
 ```
 
 ### Configuración Avanzada
@@ -171,9 +183,15 @@ docker-compose exec rt chgrp -R www-data /opt/rt6/var
 
 ## Puertos Utilizados
 
-- 4000: Request Tracker (web interface)
-- 4001: MySQL
-- 4002-4008: Disponibles para expansión futura
+- 80: Request Tracker (web interface)
+- 3306: MySQL (puerto estándar)
+
+## Acceso Rápido
+
+Una vez iniciado, accede directamente a:
+
+- **Interface Web**: http://localhost
+- **Base de datos**: `mysql -h localhost -u rt_user -p rt6`
 
 ## Contribuir
 

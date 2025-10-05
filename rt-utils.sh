@@ -37,7 +37,7 @@ start_rt() {
     log_info "Iniciando Request Tracker..."
     check_docker
     docker-compose up -d --build
-    log_info "RT iniciado. Accede en http://192.168.1.110:9090"
+    log_info "RT iniciado. Accede en http://localhost"
 }
 
 # Función para detener RT
@@ -103,10 +103,10 @@ status_rt() {
     docker-compose ps
     
     log_info "Verificando conectividad..."
-    if curl -s http://192.168.1.110:9090 > /dev/null; then
-        log_info "RT está accesible en http://192.168.1.110:9090"
+    if curl -s http://localhost > /dev/null; then
+        log_info "RT está accesible en http://localhost"
     else
-        log_warn "RT no está accesible en http://192.168.1.110:9090"
+        log_warn "RT no está accesible en http://localhost"
     fi
 }
 

@@ -8,8 +8,8 @@ Set($DatabasePassword, $ENV{'RT_DATABASE_PASSWORD'} || 'rt_password');
 Set($DatabaseType, 'mysql');
 
 # Configuración web
-Set($WebDomain, $ENV{'RT_WEB_DOMAIN'} || '192.168.1.110');
-Set($WebPort, $ENV{'RT_WEB_PORT'} || 9090);
+Set($WebDomain, $ENV{'RT_WEB_DOMAIN'} || 'localhost');
+Set($WebPort, $ENV{'RT_WEB_PORT'} || 80);
 Set($WebPath, '/');
 Set($WebBaseURL, "http://$WebDomain:$WebPort");
 
@@ -20,8 +20,8 @@ Set($SendmailArguments, '-t');
 
 # Configuración de organización
 Set($Organization, 'RT-Docker');
-Set($CorrespondAddress, 'rt@192.168.1.110');
-Set($CommentAddress, 'rt-comment@192.168.1.110');
+Set($CorrespondAddress, 'rt@localhost');
+Set($CommentAddress, 'rt-comment@localhost');
 
 # Configuración de seguridad
 Set($WebSecureCookies, 0);
