@@ -1,0 +1,28 @@
+# Archivos de Docker
+.env
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Datos de desarrollo
+data/
+backups/
+
+# Archivos temporales
+tmp/
+temp/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Runtime
+*.pid

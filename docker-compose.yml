@@ -1,75 +1,48 @@
 version: "3.8"
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: rt-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rt_root_password
+      MYSQL_DATABASE: rt6
+      MYSQL_USER: rt_user
+      MYSQL_PASSWORD: rt_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "192.168.1.110:9091:3306"
+    networks:
+      - rt-network
+
   rt:
     build: .
-    container_name: request-tracker
+    container_name: rt-app
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
+    environment:
+      - RT_DATABASE_HOST=mysql
+      - RT_DATABASE_NAME=rt6
+      - RT_DATABASE_USER=rt_user
+      - RT_DATABASE_PASSWORD=rt_password
+      - RT_WEB_DOMAIN=192.168.1.110
+      - RT_WEB_PORT=9090
+    volumes:
+      - rt_data:/opt/rt6/var
+      - ./config:/opt/rt6/etc/RT_SiteConfig.d
+      - ./plugins:/opt/rt6/local/plugins
     ports:
-      - "${RT_EXTERNAL_PORT:-3001}:3002"
-    environment:
-      RT_DATABASE_HOST: ${RT_DATABASE_HOST:-db}
-      RT_DATABASE_NAME: ${RT_DATABASE_NAME:-rt6}
-      RT_DATABASE_USER: ${RT_DATABASE_USER:-rt_user}
-      RT_DATABASE_PASSWORD: ${RT_DATABASE_PASSWORD:-rt_pass}
-      RT_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
-      RT_ORGANIZATION: ${RT_ORGANIZATION:-example.com}
-      RT_CORRESPOND_ADDRESS: ${RT_CORRESPOND_ADDRESS:-rt@example.com}
-      RT_TIMEZONE: ${RT_TIMEZONE:-UTC}
-    volumes:
-      - rt-data:/opt/rt6/var
-      - rt-logs:/var/log/apache2
+      - "192.168.1.110:9090:80"
+    depends_on:
+      - mysql
     networks:
       - rt-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  db:
-    image: mysql:8.0
-    container_name: rt-db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: ${RT_DATABASE_NAME:-rt6}
-      MYSQL_USER: ${RT_DATABASE_USER:-rt_user}
-      MYSQL_PASSWORD: ${RT_DATABASE_PASSWORD:-rt_pass}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-authentication-plugin=mysql_native_password
-      - --innodb-buffer-pool-size=256M
-      - --max-connections=200
-      - --slow-query-log=1
-      - --slow-query-log-file=/var/log/mysql/slow.log
-      - --long-query-time=2
-    volumes:
-      - db-data:/var/lib/mysql
-      - db-logs:/var/log/mysql
-    networks:
-      - rt-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
 volumes:
-  rt-data:
-    driver: local
-  db-data:
-    driver: local
-  rt-logs:
-    driver: local
-  db-logs:
-    driver: local
+  mysql_data:
+  rt_data:
 
 networks:
   rt-network:
